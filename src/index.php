@@ -1,5 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 require_once __DIR__ . '/TGUserbot.php';
+
 //auto updater
 if (!TESTMODE and RUNNING_FROM === 'cli' and Phar::running()) {
     if (json_decode(file_get_contents(INFO_URL), true)['md5'] !== md5_file($_SERVER['SCRIPT_NAME'])) {

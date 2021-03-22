@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 define('WEB_VERSION', '1.2');
 ob_start();
 if (isset($_GET['ping'])) {
@@ -49,11 +52,11 @@ function saveSettings($conf)
         <?php
         $setup_template = <<<EOT
     <form method="post">
-  <div class="form-group">
-    <label for="register_password">New TGUserbot password</label>
-    <input type="password" class="form-control" id="register_password" name="register_password" placeholder="Password">
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
+    <div class="form-group">
+        <label for="register_password">New TGUserbot password</label>
+        <input type="password" class="form-control" id="register_password" name="register_password" placeholder="Password">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 EOT;
         $login_template = <<<EOT

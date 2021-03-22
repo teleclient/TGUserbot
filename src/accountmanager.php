@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use PhpSchool\CliMenu\CliMenu;
 use PhpSchool\CliMenu\Builder\CliMenuBuilder;
 use PhpSchool\CliMenu\Action\ExitAction;
@@ -53,7 +55,7 @@ $menu = $menu->addLineBreak(' ');
 foreach ($sessions as $session) {
     $menu = $menu->addSubMenu($session, function (CliMenuBuilder $b) use ($session, $TGUserbot, $start) {
         $b->setTitle($TGUserbot->strings['sessions'] . ' > ' . $session . '.madeline')
-        ->disableDefaultItems()
+            ->disableDefaultItems()
             ->addItem($TGUserbot->strings['start_session'], function (CliMenu $menu) use ($session, $TGUserbot, $start) {
                 $menu->close();
                 $start($session);
@@ -86,23 +88,23 @@ foreach ($sessions as $session) {
                 require __FILE__;
             }
         })
-        ->addItem($TGUserbot->strings['delete_session'], function (CliMenu $menu) use ($session, $TGUserbot) {
-            $result = $menu->askText()
-                ->setPromptText($TGUserbot->strings['confirm_delete'])
-                ->setValidationFailedText($TGUserbot->strings['confirm_delete'])
-                ->ask();
-            if ($result->fetch() === $session) {
-                $TGUserbot->killSession([$session]);
-                unlink(DIR . 'sessions/' . $session . '.madeline');
-                @unlink(DIR . 'sessions/' . $session . '.madeline.lock');
-                $flash = $menu->flash($TGUserbot->strings['done']);
-                $flash->display();
-                $menu->close();
-                require __FILE__;
-            }
-        })
-        ->addLineBreak(' ')
-        ->addItem($TGUserbot->strings['go_back'], new GoBackAction);
+            ->addItem($TGUserbot->strings['delete_session'], function (CliMenu $menu) use ($session, $TGUserbot) {
+                $result = $menu->askText()
+                    ->setPromptText($TGUserbot->strings['confirm_delete'])
+                    ->setValidationFailedText($TGUserbot->strings['confirm_delete'])
+                    ->ask();
+                if ($result->fetch() === $session) {
+                    $TGUserbot->killSession([$session]);
+                    unlink(DIR . 'sessions/' . $session . '.madeline');
+                    @unlink(DIR . 'sessions/' . $session . '.madeline.lock');
+                    $flash = $menu->flash($TGUserbot->strings['done']);
+                    $flash->display();
+                    $menu->close();
+                    require __FILE__;
+                }
+            })
+            ->addLineBreak(' ')
+            ->addItem($TGUserbot->strings['go_back'], new GoBackAction);
     });
 }
 $menu = $menu->addLineBreak(' ')

@@ -1,11 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 $data = [];
 $error = function ($e, $chatID = NULL) use (&$MadelineProto) {
     $this->log($e, [], 'error');
     if (isset($chatID) and $this->settings['send_errors']) {
         try {
             $MadelineProto->messages->sendMessage(['peer' => $chatID, 'message' => '<b>' . $this->strings['error'] . '</b><code>' . $e->getMessage() . '</code>', 'parse_mode' => 'HTML'], ['async' => true]);
-        } catch (\Throwable $e) { }
+        } catch (\Throwable $e) {
+        }
     }
 };
 
@@ -99,7 +103,8 @@ $callback = function ($update) use (&$MadelineProto, &$error, &$parseUpdate, &$b
             } elseif (in_array($u['type'], ['channel', 'supergroup'])) {
                 yield $MadelineProto->channels->readHistory(['channel' => $u['chatID'], 'max_id' => $u['msgid']], ['async' => true]);
             }
-        } catch (\Throwable $e) { }
+        } catch (\Throwable $e) {
+        }
     }
     if (isset($bot)) {
         try {
@@ -127,7 +132,7 @@ $onLoop = function ($watcherId) use (&$MadelineProto, &$error) {
     }
 };
 
-$include = function($file, $variables) {
+$include = function ($file, $variables) {
     if (!is_array($variables)) return false;
     $file = '$includeRun = function ($variables) { foreach ($variables as $key => $value) { $$key = $value; }' . str_replace('<?php', '', file_get_contents($file)) . '};';
     eval($file);

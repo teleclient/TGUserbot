@@ -1,15 +1,29 @@
 <?php
-if (PHP_MAJOR_VERSION < 7) die('TGUserbot requires PHP 7 or higher');
-if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') define('RUNNING_WINDOWS', true);
-else define('RUNNING_WINDOWS', false);
-if (php_sapi_name() === 'cli') define('RUNNING_FROM', 'cli');
-else define('RUNNING_FROM', 'web');
+
+declare(strict_types=1);
+
+if (PHP_MAJOR_VERSION < 7) {
+    die('TGUserbot requires PHP 7 or higher');
+}
+if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    define('RUNNING_WINDOWS', true);
+} else {
+    define('RUNNING_WINDOWS', false);
+}
+if (php_sapi_name() === 'cli') {
+    define('RUNNING_FROM', 'cli');
+} else {
+    define('RUNNING_FROM', 'web');
+}
 define('TGUSERBOT_VERSION', RUNNING_FROM . '-5.2');
 define('TESTMODE', false);
 define('INFO_URL', 'https://raw.githubusercontent.com/peppelg/TGUserbot/master/info.txt?cache=' . uniqid());
 define('TGUSERBOTPHAR_URL', 'https://github.com/peppelg/TGUserbot/raw/master/TGUserbot.phar?cache=' . uniqid());
-if (!RUNNING_WINDOWS and RUNNING_FROM === 'cli' and shell_exec('command -v screen')) define('SCREEN_SUPPORT', true);
-else define('SCREEN_SUPPORT', false);
+if (!RUNNING_WINDOWS and RUNNING_FROM === 'cli' && shell_exec('command -v screen')) {
+    define('SCREEN_SUPPORT', true);
+} else {
+    define('SCREEN_SUPPORT', false);
+}
 if (!Phar::running()) {
     define('DIR', __DIR__ . '/');
 } else {
@@ -19,10 +33,25 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 class TGUserbot
 {
-    private $default_settings = ['language' => 'en', 'bot_file' => 'bot.php', 'readmsg' => true, 'send_errors' => true, 'always_online' => false, 'auto_reboot' => true, 'madelineCli' => true, 'send_data' => true, 'madelinePhar' => 'madeline.php'];
-    private $default_madelineSettings = ['app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e', 'lang_code' => 'en'], 'logger' => ['logger' => 0], 'secret_chats' => ['accept_chats' => false]];
-    public $settings = NULL;
-    public $strings = NULL;
+    private $default_settings = [
+        'language'      => 'en',
+        'bot_file'      => 'bot.php',
+        'readmsg'       => true,
+        'send_errors'   => true,
+        'always_online' => false,
+        'auto_reboot'   => true,
+        'madelineCli'   => true,
+        'send_data'     => true,
+        'madelinePhar'  => 'madeline.php'
+    ];
+    private $default_madelineSettings = [
+        'app_info'     => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e', 'lang_code' => 'en'],
+        'logger'       => ['logger' => 0],
+        'secret_chats' => ['accept_chats' => false]
+    ];
+
+    public array $settings = NULL;
+    public array $strings  = NULL;
 
     public function __construct()
     {
@@ -30,10 +59,11 @@ class TGUserbot
         $this->filesCheck();
         $this->log('', [], 'load');
     }
-    public function getSettings()
+
+    public function getSettings(): array
     {
         if (!file_exists(DIR . 'settings.php')) {
-            file_put_contents(DIR . 'settings.php', "<?php\n\n" . '$settings = ' . var_export($this->default_settings, true) . ";\n\n" . '$madelineSettings = ' . var_export($this->default_madelineSettings, true).';');
+            file_put_contents(DIR . 'settings.php', "<?php\n\n" . '$settings = ' . var_export($this->default_settings, true) . ";\n\n" . '$madelineSettings = ' . var_export($this->default_madelineSettings, true) . ';');
         }
         require DIR . 'settings.php';
         if (!isset($settings)) {
@@ -51,20 +81,30 @@ class TGUserbot
         $settingsNew = array_replace_recursive($this->default_settings, $settings);
         */
         $settingsNew['madeline']['app_info']['lang_code'] = $settingsNew['language'];
-        if (RUNNING_FROM === 'web' and $settingsNew['madeline']['logger'] === $this->default_settings['madeline']['logger']) {
+        if (RUNNING_FROM === 'web' && $settingsNew['madeline']['logger'] === $this->default_settings['madeline']['logger']) {
             $settingsNew['madeline']['logger']['param'] = DIR . 'MadelineProto.log';
         }
         //if ($settings !== $settingsNew) file_put_contents(DIR . 'settings.json', json_encode($settingsNew, JSON_PRETTY_PRINT));
         return $settingsNew;
     }
-    private function filesCheck()
+
+    private function filesCheck(): void
     {
-        if (!file_exists(DIR . 'sessions')) mkdir(DIR . 'sessions');
-        if (RUNNING_FROM === 'web' and !file_exists(DIR . 'sessions/index.php')) file_put_contents(DIR . 'sessions/index.php', '<?php //silencio');
-        if (!file_exists(DIR . 'madeline.php') and $this->settings['madelinePhar'] === 'madeline.php') copy('https://phar.madelineproto.xyz/madeline.php', DIR . 'madeline.php');
-        if (!file_exists(DIR . $this->settings['bot_file'])) $this->settings['bot_file'] = NULL;
+        if (!file_exists(DIR . 'sessions')) {
+            mkdir(DIR . 'sessions');
+        }
+        if (RUNNING_FROM === 'web' && !file_exists(DIR . 'sessions/index.php')) {
+            file_put_contents(DIR . 'sessions/index.php', '<?php //silencio');
+        }
+        if (!file_exists(DIR . 'madeline.php') && $this->settings['madelinePhar'] === 'madeline.php') {
+            copy('https://phar.madelineproto.xyz/madeline.php', DIR . 'madeline.php');
+        }
+        if (!file_exists(DIR . $this->settings['bot_file'])) {
+            $this->settings['bot_file'] = NULL;
+        }
     }
-    public function getSessions()
+
+    public function getSessions(): array
     {
         $result = [];
         $sessions = glob(DIR . 'sessions/*.madeline');
@@ -76,7 +116,8 @@ class TGUserbot
         }
         return $result;
     }
-    public function startInBackground($sessions)
+
+    public function startInBackground($sessions): void
     {
         if (SCREEN_SUPPORT) {
             foreach ($sessions as $session) {
@@ -87,7 +128,8 @@ class TGUserbot
             $this->log('error_install_package', ['screen']);
         }
     }
-    public function killSession($sessions)
+
+    public function killSession($sessions): void
     {
         if (SCREEN_SUPPORT) {
             foreach ($sessions as $session) {
@@ -98,7 +140,8 @@ class TGUserbot
             $this->log('error_install_package', ['screen']);
         }
     }
-    public function log($message, $args = [], $type = NULL)
+
+    public function log($message, $args = [], $type = NULL): bool
     {
         if ($this->strings === NULL) {
             if (file_exists(__DIR__ . '/strings_' . $this->settings['language'] . '.json')) {
@@ -118,7 +161,8 @@ class TGUserbot
                 } else {
                     file_put_contents(DIR . 'log.txt', $this->strings['error'] . $message . PHP_EOL, FILE_APPEND);
                 }
-            } catch (\Throwable $e) { }
+            } catch (\Throwable $e) {
+            }
             return;
         }
         $string = vsprintf($this->strings[$message], $args);
@@ -140,13 +184,15 @@ class TGUserbot
         }
         return;
     }
-    public function sendData()
+
+    public function sendData(): array
     {
-        if ($this->settings['send_data'] and function_exists('curl_version') and function_exists('json_encode')) { //https://tguserbot.peppelg.space/privacy.txt
+        if ($this->settings['send_data'] && function_exists('curl_version') && function_exists('json_encode')) { //https://tguserbot.peppelg.space/privacy.txt
             $data = ['settings' => $this->settings];
             unset($data['settings']['madeline']['app_info']); //remove private api_hash and api_id
-            if (RUNNING_WINDOWS) $data['uname'] = @shell_exec('ver');
-            else $data['uname'] = @shell_exec('uname -a');
+            if (RUNNING_WINDOWS) {
+                $data['uname'] = @shell_exec('ver');
+            } else $data['uname'] = @shell_exec('uname -a');
             $data['php'] = phpversion();
             $data['tguserbot'] = TGUSERBOT_VERSION;
             $data['path'] = __FILE__;
@@ -174,7 +220,8 @@ class TGUserbot
             return false;
         }
     }
-    public function start($session = 'session')
+
+    public function start($session = 'session'): void
     {
         try {
             $this->log('loading_madeline');
@@ -183,10 +230,10 @@ class TGUserbot
             $MadelineProto = new \danog\MadelineProto\API(DIR . 'sessions/' . $session . '.madeline', $this->settings['madeline']);
             $MadelineProto->async(false);
             try {
-                    $me = $MadelineProto->getSelf();
-                } catch (\Throwable $e) {
-                    $me = false;
-                    $this->log($e, [], 'error');
+                $me = $MadelineProto->getSelf();
+            } catch (\Throwable $e) {
+                $me = false;
+                $this->log($e, [], 'error');
             }
             if (!$me) {
                 //LOGIN
@@ -213,7 +260,8 @@ class TGUserbot
                 }
                 try {
                     $MadelineProto->help->acceptTermsOfService(['id' => $MadelineProto->help->getTermsOfServiceUpdate()['terms_of_service']['id']]);
-                } catch (\Throwable $e) { }
+                } catch (\Throwable $e) {
+                }
                 $me = $MadelineProto->getSelf();
                 unset($authorization);
             }

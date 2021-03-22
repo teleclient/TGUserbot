@@ -1,5 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 echo 'TGUserbot Account manager' . PHP_EOL . str_repeat('=', 25) . PHP_EOL; //x windows
+
 $start = function () use ($TGUserbot, &$start) {
     $sessions = $TGUserbot->getSessions();
     array_unshift($sessions, '');
