@@ -5,16 +5,37 @@ declare(strict_types=1);
 $data = [];
 $error = function ($e, $chatID = NULL) use (&$MadelineProto) {
     $this->log($e, [], 'error');
-    if (isset($chatID) and $this->settings['send_errors']) {
+    if (isset($chatID) && $this->settings['send_errors']) {
         try {
-            $MadelineProto->messages->sendMessage(['peer' => $chatID, 'message' => '<b>' . $this->strings['error'] . '</b><code>' . $e->getMessage() . '</code>', 'parse_mode' => 'HTML'], ['async' => true]);
+            $MadelineProto->messages->sendMessage(
+                [
+                    'peer'       => $chatID,
+                    'message'    => '<b>' . $this->strings['error'] . '</b><code>' . $e->getMessage() . '</code>',
+                    'parse_mode' => 'HTML'
+                ],
+                [
+                    'async' => true
+                ]
+            );
         } catch (\Throwable $e) {
         }
     }
 };
 
 $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
-    $result = ['chatID' => null, 'userID' => null, 'msgid' => null, 'type' => null, 'name' => null, 'username' => null, 'chatusername' => null, 'title' => null, 'msg' => null, 'info' => null, 'update' => $update];
+    $result = [
+        'chatID'       => null,
+        'userID'       => null,
+        'msgid'        => null,
+        'type'         => null,
+        'name'         => null,
+        'username'     => null,
+        'chatusername' => null,
+        'title'        => null,
+        'msg'          => null,
+        'info'         => null,
+        'update'       => $update
+    ];
     try {
         if (isset($update['message'])) {
             if (isset($update['message']['from_id'])) {
@@ -27,7 +48,10 @@ $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
                 $result['msg'] = $update['message']['message'];
             }
             if (isset($update['message']['to_id'])) {
-                $result['info']['to'] = yield $MadelineProto->getInfo($update['message']['to_id'], ['async' => true]);
+                $result['info']['to'] = yield $MadelineProto->getInfo(
+                    $update['message']['to_id'],
+                    ['async' => true]
+                );
             }
             if (isset($result['info']['to']['bot_api_id'])) {
                 $result['chatID'] = $result['info']['to']['bot_api_id'];
@@ -36,9 +60,12 @@ $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
                 $result['type'] = $result['info']['to']['type'];
             }
             if (isset($result['userID'])) {
-                $result['info']['from'] = yield $MadelineProto->getInfo($result['userID'], ['async' => true]);
+                $result['info']['from'] = yield $MadelineProto->getInfo(
+                    $result['userID'],
+                    ['async' => true]
+                );
             }
-            if (isset($result['info']['to']['User']['self']) and isset($result['userID']) and $result['info']['to']['User']['self']) {
+            if (isset($result['info']['to']['User']['self']) && isset($result['userID']) && $result['info']['to']['User']['self']) {
                 $result['chatID'] = $result['userID'];
             }
             if (isset($result['type']) and $result['type'] == 'chat') {
@@ -64,13 +91,27 @@ $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
 };
 
 $printUpdate = function ($update) use (&$data) {
-    if ($update['type'] === 'group' or $update['type'] === 'supergroup') {
-        $this->log(RUNNING_FROM . '_template_group', [$update['name'], $update['userID'], $update['title'], $update['chatID'], $update['msg']]);
+    if ($update['type'] === 'group' || $update['type'] === 'supergroup') {
+        $this->log(RUNNING_FROM . '_template_group', [
+            $update['name'],
+            $update['userID'],
+            $update['title'],
+            $update['chatID'],
+            $update['msg']
+        ]);
         $data['replyChatId'] = $update['chatID'];
     } elseif ($update['type'] === 'channel') {
-        $this->log(RUNNING_FROM . '_template_user', [$update['title'], $update['chatID'], $update['msg']]);
+        $this->log(RUNNING_FROM . '_template_user', [
+            $update['title'],
+            $update['chatID'],
+            $update['msg']
+        ]);
     } else {
-        $this->log(RUNNING_FROM . '_template_user', [$update['name'], $update['userID'], $update['msg']]);
+        $this->log(RUNNING_FROM . '_template_user', [
+            $update['name'],
+            $update['userID'],
+            $update['msg']
+        ]);
         $data['replyChatId'] = $update['chatID'];
     }
 };
@@ -95,13 +136,31 @@ $schedule = function ($time, $function) use (&$MadelineProto) {
 
 $callback = function ($update) use (&$MadelineProto, &$error, &$parseUpdate, &$bot, &$printUpdate) {
     $u = yield $parseUpdate($update);
-    if ($u['msg']) $printUpdate($u);
-    if ($this->settings['readmsg'] and isset($u['chatID']) and isset($u['msgid'])) {
+    if ($u['msg']) {
+        $printUpdate($u);
+    }
+    if ($this->settings['readmsg'] && isset($u['chatID']) && isset($u['msgid'])) {
         try {
             if (in_array($u['type'], ['user', 'bot', 'group'])) {
-                yield $MadelineProto->messages->readHistory(['peer' => $u['chatID'], 'max_id' => $u['msgid']], ['async' => true]);
+                yield $MadelineProto->messages->readHistory(
+                    [
+                        'peer'   => $u['chatID'],
+                        'max_id' => $u['msgid']
+                    ],
+                    [
+                        'async' => true
+                    ]
+                );
             } elseif (in_array($u['type'], ['channel', 'supergroup'])) {
-                yield $MadelineProto->channels->readHistory(['channel' => $u['chatID'], 'max_id' => $u['msgid']], ['async' => true]);
+                yield $MadelineProto->channels->readHistory(
+                    [
+                        'channel' => $u['chatID'],
+                        'max_id'  => $u['msgid']
+                    ],
+                    [
+                        'async' => true
+                    ]
+                );
             }
         } catch (\Throwable $e) {
         }
@@ -117,8 +176,15 @@ $callback = function ($update) use (&$MadelineProto, &$error, &$parseUpdate, &$b
 
 $onLoop = function ($watcherId) use (&$MadelineProto, &$error) {
     try {
-        if ($this->settings['always_online'] and in_array(date('s'), [00, 30])) {
-            yield $MadelineProto->account->updateStatus(['offline' => 0], ['async' => true]);
+        if ($this->settings['always_online'] && in_array(date('s'), [00, 30])) {
+            yield $MadelineProto->account->updateStatus(
+                [
+                    'offline' => 0
+                ],
+                [
+                    'async' => true
+                ]
+            );
         }
     } catch (\Throwable $e) {
         $error($e);
@@ -133,7 +199,9 @@ $onLoop = function ($watcherId) use (&$MadelineProto, &$error) {
 };
 
 $include = function ($file, $variables) {
-    if (!is_array($variables)) return false;
+    if (!is_array($variables)) {
+        return false;
+    }
     $file = '$includeRun = function ($variables) { foreach ($variables as $key => $value) { $$key = $value; }' . str_replace('<?php', '', file_get_contents($file)) . '};';
     eval($file);
     return yield $includeRun($variables);
@@ -143,9 +211,13 @@ $MadelineCli = function () use (&$MadelineProto, &$error, &$MadelineCli, &$data)
     $res = yield $MadelineProto->readLine();
     if ($res) {
         $command = explode(' ', $res, 2);
-        if ($command[0] === '.r' and isset($command[1]) and isset($data['replyChatId'])) {
+        if ($command[0] === '.r' && isset($command[1]) && isset($data['replyChatId'])) {
             try {
-                $response = yield $MadelineProto->messages->sendMessage(['peer' => $data['replyChatId'], 'message' => $command[1], 'parse_mode' => 'HTML']);
+                $response = yield $MadelineProto->messages->sendMessage([
+                    'peer'       => $data['replyChatId'],
+                    'message'    => $command[1],
+                    'parse_mode' => 'HTML'
+                ]);
                 echo json_encode($response, JSON_PRETTY_PRINT) . PHP_EOL;
             } catch (\Throwable $e) {
                 $error($e);
@@ -155,10 +227,10 @@ $MadelineCli = function () use (&$MadelineProto, &$error, &$MadelineCli, &$data)
                 $command[1] = '{}';
             }
             $command[0] = trim($command[0]);
-            if (isset($command[0]) and $command[0]) {
-                $r = json_decode($command[1], true);
+            if (isset($command[0]) && $command[0]) {
+                $r      = json_decode($command[1], true);
                 $method = explode('.', $command[0], 2);
-                if (isset($method[0]) and isset($method[1])) {
+                if (isset($method[0]) && isset($method[1])) {
                     try {
                         $response = yield $MadelineProto->{$method[0]}->{$method[1]}($r, ['async' => true]);
                     } catch (\Throwable $e) {

@@ -14,7 +14,8 @@ if (!TESTMODE and RUNNING_FROM === 'cli' and Phar::running()) {
         }
     }
 }
-if (RUNNING_FROM === 'cli' and file_exists(__DIR__ . '/.changelog')) { //mostra changelog aggiornamento
+
+if (RUNNING_FROM === 'cli' && file_exists(__DIR__ . '/.changelog')) { //mostra changelog aggiornamento
     $file = str_replace('phar://', '', pathinfo(__DIR__, PATHINFO_DIRNAME)) . '/.read';
     $changelog = json_decode(gzinflate(file_get_contents(__DIR__ . '/.changelog')), true);
     if (file_exists($file)) {
@@ -49,10 +50,20 @@ if (RUNNING_FROM === 'cli' and file_exists(__DIR__ . '/.changelog')) { //mostra 
 }
 
 $TGUserbot = new TGUserbot();
+
 if (RUNNING_FROM === 'cli') {
-    $CliArgs = new CliArgs\CliArgs(['session' => 'S', 'background' => 'b', 'kill' => 'k', 'startAll' => 'A', 'killAll' => 'kA', 'forceKillAll' => 'fK']);
+    $CliArgs = new CliArgs\CliArgs([
+        'session'      => 'S',
+        'background'   => 'b',
+        'kill'         => 'k',
+        'startAll'     => 'A',
+        'killAll'      => 'kA',
+        'forceKillAll' => 'fK'
+    ]);
     $session = $CliArgs->getArg('session');
-    if (!$session) $session = 'session'; //default session
+    if (!$session) {
+        $session = 'session';  //default session
+    }
 
     if ($CliArgs->isFlagExist('background')) {
         $TGUserbot->startInBackground([$session]);
@@ -90,5 +101,6 @@ if (RUNNING_FROM === 'cli') {
             exit;
         }
     }
+
     $TGUserbot->start($session);
 }
