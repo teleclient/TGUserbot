@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 define('PHAR_NAME', 'TGUserbot.phar');
 define('SRC_DIR', 'src');
+
+// Composer update
 if (trim(strtolower(readline('Run composer update? [y/n]: '))) === 'y') {
     passthru('cd ' . escapeshellarg(SRC_DIR) . ' && composer update');
 }
+
 $phar = new Phar(PHAR_NAME, 0, PHAR_NAME);
 $phar->startBuffering();
 $phar->buildFromDirectory(SRC_DIR);
@@ -17,12 +20,14 @@ passthru('nano ' . escapeshellarg(__DIR__ . '/changelog'));
 $changelog = trim(file_get_contents(__DIR__ . '/changelog'));
 echo $changelog;
 unlink(__DIR__ . '/changelog');
+
 echo "\n\nEval:\n";
 touch(__DIR__ . '/eval');
 passthru('nano ' . escapeshellarg(__DIR__ . '/eval'));
 $eval = trim(file_get_contents(__DIR__ . '/eval'));
 echo $eval;
 unlink(__DIR__ . '/eval');
+
 echo "\n\nGit commit message:\n";
 file_put_contents(__DIR__ . '/commitMessage', $changelog);
 passthru('nano ' . escapeshellarg(__DIR__ . '/commitMessage'));

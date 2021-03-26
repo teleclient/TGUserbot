@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$data = [];
+$data  = [];
 $error = function ($e, $chatID = NULL) use (&$MadelineProto) {
     $this->log($e, [], 'error');
     if (isset($chatID) && $this->settings['send_errors']) {
@@ -50,7 +50,9 @@ $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
             if (isset($update['message']['to_id'])) {
                 $result['info']['to'] = yield $MadelineProto->getInfo(
                     $update['message']['to_id'],
-                    ['async' => true]
+                    [
+                        'async' => true
+                    ]
                 );
             }
             if (isset($result['info']['to']['bot_api_id'])) {
@@ -62,7 +64,9 @@ $parseUpdate = function ($update) use (&$MadelineProto, &$error) {
             if (isset($result['userID'])) {
                 $result['info']['from'] = yield $MadelineProto->getInfo(
                     $result['userID'],
-                    ['async' => true]
+                    [
+                        'async' => true
+                    ]
                 );
             }
             if (isset($result['info']['to']['User']['self']) && isset($result['userID']) && $result['info']['to']['User']['self']) {
@@ -232,13 +236,17 @@ $MadelineCli = function () use (&$MadelineProto, &$error, &$MadelineCli, &$data)
                 $method = explode('.', $command[0], 2);
                 if (isset($method[0]) && isset($method[1])) {
                     try {
-                        $response = yield $MadelineProto->{$method[0]}->{$method[1]}($r, ['async' => true]);
+                        $response = yield $MadelineProto->{$method[0]}->{$method[1]}($r, [
+                            'async' => true
+                        ]);
                     } catch (\Throwable $e) {
                         $error($e);
                     }
                 } elseif (isset($method[0])) {
                     try {
-                        $response = yield $MadelineProto->{$method[0]}($r, ['async' => true]);
+                        $response = yield $MadelineProto->{$method[0]}($r, [
+                            'async' => true
+                        ]);
                     } catch (\Throwable $e) {
                         $error($e);
                     }

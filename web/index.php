@@ -13,6 +13,7 @@ if (isset($_POST['login_password'])) {
     setcookie('password', $_POST['login_password']);
     $_COOKIE['password'] = $_POST['login_password'];
 }
+
 function autoUpdate($conf)
 {
     $newFile = file_get_contents('https://raw.githubusercontent.com/peppelg/TGUserbot/master/web/index.php?cache=' . uniqid());
@@ -28,6 +29,7 @@ function autoUpdate($conf)
         }
     }
 }
+
 function saveSettings($conf)
 {
     file_put_contents(__DIR__ . '/.conf.php', '<?php $conf = ' . var_export($conf, true) . ';');
